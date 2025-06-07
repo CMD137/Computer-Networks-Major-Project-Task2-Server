@@ -66,12 +66,19 @@ public class Server {
                     break;
                 }
 
-                serverAck = msg.getSeqNum();
-                Message ack = new Message((short) 1, serverSeq, serverAck);
-                byte[] ackBytes = ack.serialize();
-                DatagramPacket ackPacket = new DatagramPacket(ackBytes, ackBytes.length, clientAddress, clientPort);
-                socket.send(ackPacket);
-                System.out.println("发送ACK: " + ack);
+                //期望seq应为serverACK+1；
+                if(msg.getSeqNum()==serverAck+1){
+                    serverAck = msg.getSeqNum();
+                    Message ack = new Message((short) 1, serverSeq, serverAck);
+                    byte[] ackBytes = ack.serialize();
+                    DatagramPacket ackPacket = new DatagramPacket(ackBytes, ackBytes.length, clientAddress, clientPort);
+                    socket.send(ackPacket);
+                    System.out.println("发送ACK: " + ack);
+                }else {
+                    System.out.println("收到失序包,直接丢弃！\n期望seq："+(serverAck+1)+"得到seq："+msg.getSeqNum());
+                    //只设计了超时重传，所以不重发
+                }
+
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
