@@ -52,14 +52,21 @@ public class Server {
             //数据传输阶段
             System.out.println("连接建立成功，进入数据传输阶段");
             while (true){
+                //模拟包在网络中传输花费的时间
+                //然后发现由于网络层不保证有序性，单纯等待操作就能达到乱序的效果，所以就不需要下面按几率丟包了。
+                Thread.sleep(100);
+
+
                 socket.receive(receivePacket);
 
+                /*
                 //模拟丢包  50%丢包率
-
                 if (Math.random() < 0.5) {
                     System.out.println("模拟丢包");
-                    continue;
+                    //continue;
                 }
+                */
+
 
                 //直接getData()在后面加上缓冲区的无效字符
                 // Message msg = Message.deserialize(receivePacket.getData());
@@ -92,6 +99,8 @@ public class Server {
 
             }
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
