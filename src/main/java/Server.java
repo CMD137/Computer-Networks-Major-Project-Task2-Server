@@ -54,12 +54,23 @@ public class Server {
             while (true){
                 socket.receive(receivePacket);
 
-                //模拟丢包  30%丢包率
-                if (Math.random() < 0.3) {
+                //模拟丢包  50%丢包率
+
+                if (Math.random() < 0.5) {
+                    System.out.println("模拟丢包");
                     continue;
                 }
 
-                Message msg = Message.deserialize(receivePacket.getData());
+                //直接getData()在后面加上缓冲区的无效字符
+                // Message msg = Message.deserialize(receivePacket.getData());
+                byte[] raw = receivePacket.getData();
+                int length = receivePacket.getLength();  // 实际有效长度
+                byte[] actualData = new byte[length];
+                System.arraycopy(raw, 0, actualData, 0, length);
+
+                Message msg = Message.deserialize(actualData);
+
+
                 System.out.println("收到数据包: " + msg);
                 if (msg.getType() != 3) {
                     System.out.println("错误：预期PSH+ACK消息");
@@ -68,14 +79,14 @@ public class Server {
 
                 //期望seq应为serverACK+1；
                 if(msg.getSeqNum()==serverAck+1){
-                    serverAck = msg.getSeqNum();
+                    serverAck +=msg.getData().length();
                     Message ack = new Message((short) 1, serverSeq, serverAck);
                     byte[] ackBytes = ack.serialize();
                     DatagramPacket ackPacket = new DatagramPacket(ackBytes, ackBytes.length, clientAddress, clientPort);
                     socket.send(ackPacket);
                     System.out.println("发送ACK: " + ack);
                 }else {
-                    System.out.println("收到失序包,直接丢弃！\n期望seq："+(serverAck+1)+"得到seq："+msg.getSeqNum());
+                    System.out.println("收到失序包,直接丢弃！\t期望seq："+(serverAck+1)+"得到seq："+msg.getSeqNum());
                     //只设计了超时重传，所以不重发
                 }
 

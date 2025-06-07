@@ -71,7 +71,7 @@ public class Message {
         byteBuffer.putInt(seqNum);
         byteBuffer.putInt(ackNum);
         byteBuffer.put(dataBytes);
-
+        
         return byteBuffer.array();
     }
 
