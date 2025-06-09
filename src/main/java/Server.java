@@ -96,7 +96,6 @@ public class Server {
                     System.out.println("收到失序包,直接丢弃！\t期望seq："+(serverAck+1)+"得到seq："+msg.getSeqNum());
                     //只设计了超时重传，所以不重发
                 }
-
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
